@@ -1,12 +1,15 @@
 package com.digrazia.business.validator.annotations.lengthControl;
 
 public class LengthControlConfiguration {
-    private static int maxLength;
+    private static String message;
 
-    public LengthControlConfiguration(int maxLength) {
-        this.maxLength = maxLength;
+    public LengthControlConfiguration() {
     }
-    public static int getMaxLength() {
-        return maxLength;
+
+    public static String getMessage() {
+        return message;
+    }
+    public static void setMessage(String message) {
+        LengthControlConfiguration.message = message;
     }
 }

@@ -5,8 +5,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.logging.LogLevel;
-import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.stereotype.Component;
 
 
@@ -17,33 +15,35 @@ public class PathVariableAspect {
 
     @Before("@annotation(lengthControl)")
     public void checkPathVariable(JoinPoint joinPoint, LengthControl lengthControl) {
+        LengthControlConfiguration lengthControlConfiguration = new LengthControlConfiguration();
         Object[] args = joinPoint.getArgs();
 
         for (Object arg : args) {
+            String logMessage = lengthControlConfiguration.getMessage() + ": ";
             if (arg instanceof String) {
                 checkMaxLength(arg.toString(), lengthControl);
                 switch (lengthControl.logLevel()) {
                     case INFO:
-                        log.info("INFO: Valore PathVariable intercettato: " + arg);
+                        log.info(logMessage + arg);
                         break;
                     case WARN:
-                        log.warn("WARN: Valore PathVariable intercettato: " + arg);
+                        log.warn(logMessage + arg);
                         break;
                     case DEBUG:
-                        log.error("DEBUG: Valore PathVariable intercettato: " + arg);
+                        log.error(logMessage + arg);
                         break;
                     case ERROR:
-                        log.error("ERROR: Valore PathVariable intercettato: " + arg);
+                        log.error(logMessage + arg);
                         break;
                     default:
                         break;
                 }
             } else {
+                log.error(logMessage + arg);
                 throw new RuntimeException("Valore PathVariable intercettato: " + arg.getClass());
             }
         }
     }
-
 
     private int getStringLength(String pathVariable) {
         return pathVariable.length();
@@ -59,12 +59,5 @@ public class PathVariableAspect {
                 throw new RuntimeException("Valore PathVariable max length: " + lengthControl.maxChar().getMaxChar());
             }
         }
-    }
-
-    public String changeLogLevelToError(String logLevel) {
-        LoggingSystem system = LoggingSystem.get(PathVariableAspect.class.getClassLoader());
-        system.setLogLevel(PathVariableAspect.class.getName(), LogLevel.valueOf(logLevel));
-
-        return "changed log level to error";
     }
 }

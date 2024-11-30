@@ -14,13 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/user")
 public class UserController implements UserAPI {
 
-    String max = "tre";
-
-    public UserController() {
-    }
+    public UserController() {}
     @Override
     @GetMapping("/{id}")
-    @LengthControl(customMaxChar = 3, logLevel = LogLevel.INFO)
+    @LengthControl(customMaxChar = 4, logLevel = LogLevel.INFO)
     public UserDTO getUserById(String id) {
         return null;
     }
