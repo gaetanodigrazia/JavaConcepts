@@ -1,5 +1,6 @@
 package com.digrazia.business.validator.annotations.lengthControl;
 
+import org.springframework.boot.logging.LogLevel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,13 +10,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface LengthControl {
-    UserValidation[] maxChar() default UserValidation.UUID;
-    String logLevel() default "OFF";
+    UserValidation maxChar() default UserValidation.UUID;
+    int customMaxChar() default -1;
+    LogLevel logLevel() default LogLevel.INFO;
 
     enum UserValidation {
-
-        UUID(36),
-        RANDOM(4);
+        UUID(36);
 
         private final int maxChar;
 
@@ -23,7 +23,7 @@ public @interface LengthControl {
             this.maxChar = maxChar;
         }
 
-        int getMaxChar() {
+        public int getMaxChar() {
             return this.maxChar;
         }
     }
