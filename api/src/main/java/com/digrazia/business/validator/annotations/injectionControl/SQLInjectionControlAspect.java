@@ -1,6 +1,10 @@
-package com.digrazia.business.validator.annotations.lengthControl;
+package com.digrazia.business.validator.annotations.injectionControl;
 
 import com.digrazia.business.exception.LengthControlException;
+import com.digrazia.business.exception.SQLInjectionControlException;
+import com.digrazia.business.validator.annotations.lengthControl.LengthControl;
+import com.digrazia.business.validator.annotations.lengthControl.LengthControlConfiguration;
+import com.digrazia.business.validator.annotations.lengthControl.PathVariableAspect;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -8,22 +12,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 @Aspect
 @Component
-public class PathVariableAspect {
+public class SQLInjectionControlAspect {
     Logger log = LoggerFactory.getLogger(PathVariableAspect.class);
 
-    @Before("@annotation(lengthControl)")
-    public void checkPathVariable(JoinPoint joinPoint, LengthControl lengthControl) {
+    @Before("@annotation(sqlInjectionControl)")
+    public void checkPathVariable(JoinPoint joinPoint, SQLInjectionControl sqlInjectionControl) {
         LengthControlConfiguration lengthControlConfiguration = new LengthControlConfiguration();
         Object[] args = joinPoint.getArgs();
 
         for (Object arg : args) {
             String logMessage = lengthControlConfiguration.getMessage() + ": ";
             if (arg instanceof String) {
-                checkMaxLength(arg.toString(), lengthControl);
-                switch (lengthControl.logLevel()) {
+                checkForCommand(arg.toString(), sqlInjectionControl);
+                switch (sqlInjectionControl.logLevel()) {
                     case INFO:
                         log.info(logMessage + arg);
                         break;
@@ -50,15 +57,12 @@ public class PathVariableAspect {
         return pathVariable.length();
     }
 
-    private void checkMaxLength(String pathVariable, LengthControl lengthControl) {
-        if (lengthControl.customMaxChar() != -1) {
-            if (getStringLength(pathVariable) > lengthControl.customMaxChar()) {
-                throw new LengthControlException("Valore PathVariable max length: " + lengthControl.customMaxChar());
-            }
-        } else {
-            if (getStringLength(pathVariable) > lengthControl.maxChar().getMaxChar()) {
-                throw new LengthControlException("Valore PathVariable max length: " + lengthControl.maxChar().getMaxChar());
-            }
+    private void checkForCommand(String pathVariable, SQLInjectionControl sqlInjectionControl) {
+        String regex = "\\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|GRANT|REVOKE|TRUNCATE)\\b";
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(pathVariable);
+        if (matcher.find()) {
+            throw new SQLInjectionControlException("Trovato comando sql " + pathVariable);
         }
     }
 }
