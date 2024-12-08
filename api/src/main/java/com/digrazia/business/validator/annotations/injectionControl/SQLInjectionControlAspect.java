@@ -19,17 +19,16 @@ import java.util.regex.Pattern;
 @Aspect
 @Component
 public class SQLInjectionControlAspect {
-    Logger log = LoggerFactory.getLogger(PathVariableAspect.class);
+    Logger log = LoggerFactory.getLogger(SQLInjectionControlAspect.class);
 
     @Before("@annotation(sqlInjectionControl)")
     public void checkPathVariable(JoinPoint joinPoint, SQLInjectionControl sqlInjectionControl) {
-        LengthControlConfiguration lengthControlConfiguration = new LengthControlConfiguration();
         Object[] args = joinPoint.getArgs();
 
         for (Object arg : args) {
-            String logMessage = lengthControlConfiguration.getMessage() + ": ";
+            String logMessage = "";
             if (arg instanceof String) {
-                checkForCommand(arg.toString(), sqlInjectionControl);
+                checkForCommand(arg.toString());
                 switch (sqlInjectionControl.logLevel()) {
                     case INFO:
                         log.info(logMessage + arg);
@@ -48,16 +47,12 @@ public class SQLInjectionControlAspect {
                 }
             } else {
                 log.error(logMessage + arg);
-                throw new LengthControlException("Valore PathVariable intercettato: " + arg.getClass());
+                throw new SQLInjectionControlException("Valore PathVariable intercettato: " + arg.getClass());
             }
         }
     }
 
-    private int getStringLength(String pathVariable) {
-        return pathVariable.length();
-    }
-
-    private void checkForCommand(String pathVariable, SQLInjectionControl sqlInjectionControl) {
+    private void checkForCommand(String pathVariable) {
         String regex = "\\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|GRANT|REVOKE|TRUNCATE)\\b";
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(pathVariable);
