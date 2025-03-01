@@ -16,6 +16,9 @@
 		<module>api</module>
 		<module>java</module>
 		<module>spring</module>
+        <module>designPatterns</module>
+        <module>solid</module>
+		<module>collectionsFramework</module>
 	</modules>
 
 	<groupId>com.digrazia</groupId>
